@@ -1,0 +1,79 @@
+{% extends "quotes/base.html" %}
+
+{% block content %}
+<h2>⭐ Топ цитат</h2>
+<ul class="top-list">
+    {% for q in quotes %}
+        <li>
+            <p class="quote-text">“{{ q.text }}”</p>
+            <p class="quote-meta">
+                Источник: {{ q.source_name }} | Жанр: {{ q.genre }}
+                {% if q.author_name %}
+                    | Автор: {{ q.author_name }}
+                {% endif %}
+            </p>
+
+            <div class="quote-actions">
+                <a href="#" class="vote-button" data-id="{{ q.id }}" data-action="like" id="like-button-{{ q.id }}">
+                    👍 <span id="like-count-{{ q.id }}">{{ q.likes }}</span>
+                </a>
+                <a href="#" class="vote-button" data-id="{{ q.id }}" data-action="dislike" id="dislike-button-{{ q.id }}">
+                    👎 <span id="dislike-count-{{ q.id }}">{{ q.dislikes }}</span>
+                </a>
+                <span class="views">👁 {{ q.views }}</span>
+            </div>
+        </li>
+    {% empty %}
+        <li>Цитат пока нет.</li>
+    {% endfor %}
+</ul>
+
+<script>
+document.querySelectorAll(".vote-button").forEach(btn => {
+    btn.addEventListener("click", function(e) {
+        e.preventDefault();
+        const quoteId = this.dataset.id;
+        const action = this.dataset.action;
+
+        fetch(`/vote-ajax/${quoteId}/${action}/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("like-count-" + quoteId).innerText = data.likes;
+                document.getElementById("dislike-count-" + quoteId).innerText = data.dislikes;
+
+                document.getElementById("like-button-" + quoteId).style.color =
+                    data.voted === "like" ? "green" : "black";
+                document.getElementById("dislike-button-" + quoteId).style.color =
+                    data.voted === "dislike" ? "red" : "black";
+            });
+    });
+});
+</script>
+
+<style>
+.top-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    max-width: 600px;
+    text-align: left;
+}
+.top-list li {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}
+.quote-actions a {
+    margin: 0 10px;
+    font-size: 1.1em;
+    text-decoration: none;
+}
+.views {
+    margin-left: 15px;
+    font-size: 1em;
+    color: #666;
+}
+</style>
+{% endblock %}
